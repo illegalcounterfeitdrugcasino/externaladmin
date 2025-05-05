@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLGC Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: #1a1a2e;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #login-content {
+            background: #2a2a4a;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+        }
+
+        #login-content input {
+            padding: 10px;
+            margin: 10px 0;
+            width: 200px;
+            border: none;
+            border-radius: 5px;
+            background: #333;
+            color: #fff;
+        }
+
+        #login-content button {
+            padding: 10px 20px;
+            background: #ff00ff;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        #login-content button:hover {
+            background: #00ffff;
+        }
+
+        #dashboard {
+            width: 90%;
+            max-width: 1200px;
+            background: #2a2a4a;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.5);
+            display: none;
+        }
+
+        .collapsible {
+            background: #ff00ff;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            width: 100%;
+            text-align: left;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+
+        .collapsible:hover {
+            background: #00ffff;
+        }
+
+        .content {
+            display: none;
+            padding: 15px;
+            background: #333;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        #database-table-container {
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        #database-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #444;
+            color: #fff;
+        }
+
+        #database-table th, #database-table td {
+            padding: 10px;
+            border: 1px solid #555;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        #database-table th {
+            background: #ff00ff;
+        }
+
+        #database-table tr:nth-child(even) {
+            background: #3a3a5a;
+        }
+
+        #banned-ips, #app-version {
+            margin: 10px 0;
+            padding: 10px;
+            background: #333;
+            border-radius: 5px;
+        }
+
+        #banned-ips-list, #app-version-list {
+            margin-top: 10px;
+        }
+
+        #banned-ips-list div, #app-version-list div {
+            padding: 5px;
+            background: #444;
+            border-radius: 3px;
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #log-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #333;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        #log-section p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            background: #ff00ff;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .action-btn:hover {
+            background: #00ffff;
+        }
+
+        input, button {
+            padding: 8px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background: #444;
+            color: #fff;
+        }
+
+        button {
+            background: #ff00ff;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #00ffff;
+        }
+    </style>
+</head>
+<body>
+    <div id="login-screen">
+        <div id="login-content">
+            <h2>Admin Database Login</h2>
+            <input type="password" id="admin-password" placeholder="Enter 256-bit Encryption Key">
+            <button onclick="window.login()">Login</button>
+        </div>
+    </div>
+
+    <div id="dashboard">
+        <h2>FLGC Admin Dashboard</h2>
+
+        <button class="collapsible">▶ Database Viewer</button>
+        <div class="content">
+            <button class="action-btn" onclick="window.downloadDatabase()">Download Database (JSON)</button>
+            <div id="database-table-container">
+                <table id="database-table">
+                    <thead>
+                        <tr id="table-header"></tr>
+                    </thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <button class="collapsible">▶ Banned IPs</button>
+        <div class="content">
+            <div id="banned-ips">
+                <h3>Current Banned IPs</h3>
+                <div id="banned-ips-list"></div>
+                <input type="text" id="new-ip" placeholder="Enter IP to ban">
+                <button onclick="window.addBannedIP()">Add IP</button>
+            </div>
+        </div>
+
+        <button class="collapsible">▶ App Version</button>
+        <div class="content">
+            <div id="app-version">
+                <h3>Current App Version</h3>
+                <div id="app-version-list"></div>
+                <input type="text" id="new-version" placeholder="Enter new version">
+                <button onclick="window.updateAppVersion()">Update Version</button>
+            </div>
+        </div>
+
+        <div id="log-section">
+            <h3>Activity Log</h3>
+            <div id="log-content"></div>
+        </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc, setDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAR5ZNjlqMDSu6nTLEYrTQZrFhSODply8s",
+            authDomain: "flgcas.firebaseapp.com",
+            projectId: "flgcas",
+            storageBucket: "flgcas.firebasestorage.app",
+            messagingSenderId: "756441459947",
+            appId: "1:756441459947:web:82e6aaa245c5cea95ae2ae",
+            measurementId: "G-WT7712F2DP"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const adminPassword = "9f3b1e4a7c8d2f05e1a9c3d6b7f08234a5e6d9c8f1b2a4d7e3c6f8a0b1d2e4f7";
+
+        window.login = function() {
+            const input = document.getElementById("admin-password").value.trim();
+            if (!input) {
+                alert("Please enter a password!");
+                return;
+            }
+            if (input === adminPassword) {
+                document.getElementById("login-screen").style.display = "none";
+                document.getElementById("dashboard").style.display = "block";
+                window.log("Admin logged in successfully");
+                window.fetchDatabase();
+                window.fetchBannedIPs();
+                window.fetchAppVersion();
+            } else {
+                alert("Incorrect password!");
+                document.getElementById("admin-password").value = "";
+            }
+        };
+
+        window.log = function(message) {
+            const logContent = document.getElementById("log-content");
+            if (!logContent) return;
+            const timestamp = new Date().toISOString().split("T")[1].split(".")[0];
+            logContent.innerHTML += `<p>[${timestamp}] ${message}</p>`;
+            logContent.scrollTop = logContent.scrollHeight;
+        };
+
+        window.fetchDatabase = async function() {
+            window.log("Fetching database...");
+            const collections = ["visitors", "display_info", "locations", "banned_ips", "app_version"];
+            let allData = {};
+            let allHeaders = new Set();
+
+            try {
+                for (const col of collections) {
+                    const querySnapshot = await getDocs(collection(db, col));
+                    allData[col] = [];
+                    querySnapshot.forEach(doc => {
+                        const data = { id: doc.id, ...doc.data() };
+                        allData[col].push(data);
+                        Object.keys(data).forEach(key => allHeaders.add(key));
+                    });
+                }
+
+                const headers = ["collection", "id", ...Array.from(allHeaders).filter(h => h !== "id")];
+                const tableHeader = document.getElementById("table-header");
+                if (!tableHeader) return;
+                tableHeader.innerHTML = headers.map(h => `<th>${h}</th>`).join("");
+
+                const tableBody = document.getElementById("table-body");
+                if (!tableBody) return;
+                tableBody.innerHTML = "";
+                for (const col in allData) {
+                    allData[col].forEach(doc => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = headers.map(h => {
+                            if (h === "collection") return `<td>${col}</td>`;
+                            if (h === "id") return `<td>${doc.id}</td>`;
+                            const value = doc[h] !== undefined ? JSON.stringify(doc[h]) : "";
+                            return `<td>${value.length > 50 ? value.substring(0, 50) + "..." : value}</td>`;
+                        }).join("");
+                        tableBody.appendChild(row);
+                    });
+                }
+                window.log("Database loaded successfully");
+            } catch (e) {
+                window.log(`Error fetching database: ${e.message}`);
+            }
+        };
+
+        window.downloadDatabase = async function() {
+            window.log("Preparing database download...");
+            const collections = ["visitors", "display_info", "locations", "banned_ips", "app_version"];
+            let allData = {};
+
+            try {
+                for (const col of collections) {
+                    const querySnapshot = await getDocs(collection(db, col));
+                    allData[col] = [];
+                    querySnapshot.forEach(doc => {
+                        allData[col].push({ id: doc.id, ...doc.data() });
+                    });
+                }
+
+                const blob = new Blob([JSON.stringify(allData, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "flgc_database.json";
+                a.click();
+                URL.revokeObjectURL(url);
+                window.log("Database downloaded successfully");
+            } catch (e) {
+                window.log(`Error downloading database: ${e.message}`);
+            }
+        };
+
+        window.fetchBannedIPs = async function() {
+            window.log("Fetching banned IPs...");
+            const bannedIPsList = document.getElementById("banned-ips-list");
+            if (!bannedIPsList) return;
+            bannedIPsList.innerHTML = "";
+            try {
+                const querySnapshot = await getDocs(collection(db, "banned_ips"));
+                if (querySnapshot.empty) {
+                    bannedIPsList.innerHTML = "<p>No banned IPs found.</p>";
+                }
+                querySnapshot.forEach(doc => {
+                    const div = document.createElement("div");
+                    div.innerHTML = `${doc.id} <button onclick="window.removeBannedIP('${doc.id}')">Remove</button>`;
+                    bannedIPsList.appendChild(div);
+                });
+                window.log("Banned IPs loaded");
+            } catch (e) {
+                window.log(`Error fetching banned IPs: ${e.message}`);
+            }
+        };
+
+        window.addBannedIP = async function() {
+            const ip = document.getElementById("new-ip").value.trim();
+            if (!ip || !/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip)) {
+                alert("Please enter a valid IP address!");
+                return;
+            }
+            try {
+                await setDoc(doc(db, "banned_ips", ip), { banned: true, timestamp: new Date().toISOString() });
+                document.getElementById("new-ip").value = "";
+                window.fetchBannedIPs();
+                window.log(`Banned IP ${ip} added`);
+            } catch (e) {
+                window.log(`Error adding banned IP: ${e.message}`);
+            }
+        };
+
+        window.removeBannedIP = async function(ip) {
+            try {
+                await deleteDoc(doc(db, "banned_ips", ip));
+                window.fetchBannedIPs();
+                window.log(`Banned IP ${ip} removed`);
+            } catch (e) {
+                window.log(`Error removing banned IP: ${e.message}`);
+            }
+        };
+
+        window.fetchAppVersion = async function() {
+            window.log("Fetching app version...");
+            const appVersionList = document.getElementById("app-version-list");
+            if (!appVersionList) return;
+            appVersionList.innerHTML = "";
+            try {
+                const querySnapshot = await getDocs(collection(db, "app_version"));
+                if (querySnapshot.empty) {
+                    appVersionList.innerHTML = "<p>No app versions found.</p>";
+                }
+                querySnapshot.forEach(doc => {
+                    const div = document.createElement("div");
+                    div.innerHTML = `${doc.data().version} <button onclick="window.removeAppVersion('${doc.id}')">Remove</button>`;
+                    appVersionList.appendChild(div);
+                });
+                window.log("App version loaded");
+            } catch (e) {
+                window.log(`Error fetching app version: ${e.message}`);
+            }
+        };
+
+        window.updateAppVersion = async function() {
+            const version = document.getElementById("new-version").value.trim();
+            if (!version || !/^\d+$/.test(version)) {
+                alert("Please enter a valid version number (numeric only)!");
+                return;
+            }
+            try {
+                await addDoc(collection(db, "app_version"), { version, timestamp: new Date().toISOString() });
+                document.getElementById("new-version").value = "";
+                window.fetchAppVersion();
+                window.log(`App version ${version} added`);
+            } catch (e) {
+                window.log(`Error adding app version: ${e.message}`);
+            }
+        };
+
+        window.removeAppVersion = async function(id) {
+            try {
+                await deleteDoc(doc(db, "app_version", id));
+                window.fetchAppVersion();
+                window.log(`App version removed`);
+            } catch (e) {
+                window.log(`Error removing app version: ${e.message}`);
+            }
+        };
+
+        window.deployChanges = function() {
+            window.log("Changes deployed successfully (no-op for this demo)");
+            alert("Changes deployed successfully!");
+        };
+
+        // Collapsible menu functionality
+        document.querySelectorAll(".collapsible").forEach(button => {
+            button.addEventListener("click", () => {
+                const content = button.nextElementSibling;
+                if (!content) return;
+                content.classList.toggle("active");
+                button.textContent = content.classList.contains("active") ?
+                    button.textContent.replace("▶", "▼") :
+                    button.textContent.replace("▼", "▶");
+                if (!button.textContent.includes("▶") && !button.textContent.includes("▼")) {
+                    button.textContent = content.classList.contains("active") ?
+                        "▼ " + button.textContent :
+                        "▶ " + button.textContent;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
